@@ -1,132 +1,271 @@
 //
-//  LibraryView.swift
+//  CategoriesView.swift
 //  iNova
 //
-//  Created by Mason Scherbarth on 5/17/22.
+//  Created by Mason Scherbarth on 5/14/22.
 //
-//  NOTE: This isn't going to work the way I'm doing it.
-//        I want to get access to a bunch of the app information,
-//        then sign it inside the app using an AdHoc Cert.
-//        Debian might know how to do this.
+//  Starfiles App API
+//  https://api.starfiles.co/2.0/files?public&extension=ipa
+//  No Duplicate Apps API
+//  https://api.starfiles.co/2.0/files?public&extension=ipa&group=hash&collapse=true
+//
 
 import SwiftUI
-import UniformTypeIdentifiers
+import SDWebImageSwiftUI
+
+// Getting the apps
+struct AppsList: Codable, Identifiable {
+    let id: String
+    let name: String
+}
 
 struct LibraryView: View {
     
-    @State private var presentImporter = false
-    var ipaExtension = UTType("dev.multision.ipa")!
+    @Environment(\.colorScheme) var colorScheme
     
-    @State var appNames: [String] = []
+    @State private var searchText = ""
+    @State var alreadyRan = false
+    
+    @State var appsNew: [AppsList] = []
     
     var body: some View {
         NavigationView {
             
-            List(appNames, id: \.self) { app in
-                HStack {
-                    Image("placeholder")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 45, height: 45)
-                        .overlay(RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1.5))
-                        .cornerRadius(10)
-                    VStack {
-                        Text(app.description) // Default value: {{ app_name }}
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .lineLimit(1)
-                        Text("{{ app_bundleid (app_version) }}")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(Color.primary.opacity(0.6))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .lineLimit(1)
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        
-                    }) {
-                        Image(systemName: "arrow.down.circle.fill")
-                            .foregroundColor(Color.blue)
-                            .font(.title)
-                    }.buttonStyle(PlainButtonStyle())
-                }
-            }.onAppear() {
-                do {
-                    appNames = try FileManager.default.contentsOfDirectory(at: getDocumentsDirectory(),
-                                                                           includingPropertiesForKeys: nil, options: .skipsHiddenFiles).map {$0.lastPathComponent}
-
-                } catch let error {
-                    print(error.localizedDescription)
-                }
-            }
-            
-            .navigationBarTitleDisplayMode(.large)
-            .navigationTitle("Signer")
-            .navigationBarItems(trailing:
-                                    Button(action: {
-                // Perform add IPA
-                self.presentImporter.toggle()
-            }) {
-                Image(systemName: "plus.app")
-            }).fileImporter(isPresented: $presentImporter, allowedContentTypes: [ipaExtension], allowsMultipleSelection: false) { result in
+            ScrollView {
                 
-                do {
-                    
-                    let fileUrl = try result.get()
-                    
-                    //print(fileUrl)
-                    
-                    if fileUrl.first!.startAccessingSecurityScopedResource() {
-                        //importFile(strPath: fileUrl.first!.path)
+                VStack {
+                    HStack {
+                        Spacer()
+                            .frame(width: 15)
                         
-                        importFileUrl(strPath: fileUrl.first!)
+                        VStack {
+                            Spacer()
+                                .frame(height: 25)
+                            Text("Suggest an app")
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            Spacer()
+                                .frame(height: 7.5)
+                            
+                            Text("To help find what you")
+                                .font(.footnote)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color.primary.opacity(0.6))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text("may be looking for")
+                                .font(.footnote)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color.primary.opacity(0.6))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            Spacer()
+                                .frame(height: 25)
+                        }
                         
-                        fileUrl.first!.stopAccessingSecurityScopedResource()
+                        Spacer()
+                        
+                        Button(action: {
+                            if let url = URL(string: "twitter://post?message=%40iNovaApp") {
+                                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                            }
+                        }) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.buttonText)
+                                    .frame(width: 35, height: 35)
+                                Image(systemName: "chevron.right")
+                                    .font(.subheadline)
+                                    .foregroundColor(Color.buttonColor)
+                            }
+                        }
+                        
+                        Spacer()
+                            .frame(width: 15)
                     }
-                    
-                } catch {
-                    print(error.localizedDescription)
+                }
+                .background(Color(UIColor.tertiarySystemGroupedBackground))
+                .clipShape(
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                )
+                .padding(.bottom, 17.5)
+                
+                if #available(iOS 15.0, *) {
+                    LazyVStack {
+                        ForEach(appsNew.filter({ (appsNew) -> Bool in
+                            return appsNew.name.localizedCaseInsensitiveContains(searchText) || searchText == ""
+                        }).sorted(by: { $0.name < $1.name}), id: \.id) { item in
+                            
+                            AppView(id: item.id, name: item.name)//, description: "{{ version }}")
+                            Divider()
+                            .padding(.leading, 55)
+                        }
+                    }.searchable(text: $searchText)
+                } else {
+                    LazyVStack {
+                        ForEach(appsNew, id: \.id) { item in
+                            AppView(id: item.id, name: item.name)//, description: "{{ version }}")
+                            Divider()
+                            .padding(.leading, 55)
+                        }
+                    }
                 }
                 
-            }
+            }.padding([.leading, .trailing], 17.5).padding(.top, 10)
             
+                .navigationTitle("App Library")
+                .navigationBarTitleDisplayMode(.large)
         }.navigationViewStyle(.stack)
+            .onAppear() {
+                if !alreadyRan {
+                    guard let url = URL(string: "https://api.starfiles.co/2.0/files?public&extension=ipa&group=hash&collapse=true") else { return }
+                    URLSession.shared.dataTask(with: url) { (data, _, error) in
+                        
+                        do {
+                            appsNew = try JSONDecoder().decode([AppsList].self, from: data!)
+                            self.alreadyRan.toggle()
+                        } catch {
+                            print(error)
+                        }
+                        
+                    }.resume()
+                }
+            }
     }
 }
 
-func getDocumentsDirectory() -> URL {
-    let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-    let documentsDirectory = paths[0]
-    return documentsDirectory
-}
-
-func importFile(strPath: String) {
-    let filemgr = FileManager.default
+// This is used for App Categories, if there's a way to split them up.
+struct AppSectionView: View {
     
-    if !filemgr.fileExists(atPath: strPath) {
-        let documentPath = getDocumentsDirectory().path
+    @Environment(\.colorScheme) var colorScheme
+    
+    var image: String
+    var category: String
+    var description: String
+    
+    var body: some View {
         
-        do {
-            try filemgr.copyItem(atPath: strPath, toPath: documentPath)
-        }catch (let error){
-            print("Error for file write")
-            print(error.localizedDescription)
+        HStack {
+            Image(image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 45, height: 45)
+                .overlay(RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1.5))
+                .cornerRadius(10)
+            VStack {
+                Text(category)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(description)
+                    .foregroundColor(Color.primary.opacity(0.6))
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            Spacer()
+            
+            ZStack {
+                Circle()
+                    .fill(colorScheme == .dark ? Color.buttonText : Color.buttonColor)
+                    .frame(width: 35, height: 35)
+                Image(systemName: "chevron.right")
+                    .font(.subheadline)
+                    .foregroundColor(colorScheme == .dark ? Color.buttonColor : Color.buttonText)
+            }
         }
     }
 }
 
-func importFileUrl(strPath: URL) {
-    let filemgr = FileManager.default
+// Getting the app versions (WIP)
+struct AppVersion: Codable, Identifiable {
+    var id = UUID()
     
-    let documentPath = getDocumentsDirectory().appendingPathComponent(strPath.lastPathComponent)
+    var nullVersion: String {
+        version ?? "Unknown"
+    }
     
-    do {
-        try filemgr.copyItem(at: strPath, to: documentPath)
-    }catch (let error){
-        print(error.localizedDescription)
+    let version: String?
+    
+    enum CodingKeys : String, CodingKey {
+        case version
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let versionString = try? container.decode(String.self, forKey: .version)
+        let versionInt = try? container.decode(Int.self, forKey: .version)
+        self.version = versionString ?? (versionInt == 0 ? "Unknown" : "1.0")
+    }
+}
+
+struct AppView: View {
+    
+    @Environment(\.colorScheme) var colorScheme
+    
+    var id: String
+    var name: String
+    //var description: String
+    
+    @State var appVersion: AppVersion?
+    
+    @State var alreadyRan = false
+    
+    var body: some View {
+        
+        HStack {
+            WebImage(url: URL(string: "https://api.starfiles.co/file/icon/" + id))
+                .resizable()
+                .placeholder(Image("placeholder"))
+                .scaledToFill()
+                .frame(width: 45, height: 45)
+                .overlay(RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1.5))
+                .cornerRadius(10)
+            VStack {
+                Text(name.replacingOccurrences(of: ".ipa", with: ""))
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                //Text(description)
+                Text("Version: \(String(appVersion?.nullVersion ?? "{{ version }}"))")
+                    .foregroundColor(Color.primary.opacity(0.6))
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            Spacer()
+            
+            Button(action: {
+                
+            }) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(colorScheme == .dark ? Color.buttonText : Color.buttonColor)
+                        .frame(width: 65, height: 32)
+                    Text("GET")
+                        .fontWeight(.semibold)
+                        .foregroundColor(colorScheme == .dark ? Color.buttonColor : Color.buttonText)
+                }
+            }
+        }.onAppear() {
+            if !alreadyRan {
+                guard let url = URL(string: "https://api.starfiles.co/file/fileinfo?file=" + id) else { return }
+                URLSession.shared.dataTask(with: url) { (data, _, _) in
+                    do {
+                        appVersion = try JSONDecoder().decode(AppVersion.self, from: data!)
+                        self.alreadyRan.toggle()
+                    } catch {
+                        //self.showError.toggle()
+                        print("error")
+                    }
+                }.resume()
+            }
+        }
     }
 }

@@ -21,8 +21,8 @@
 		DB3F915E282F69F40088CD3D /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = DB3F915D282F69F40088CD3D /* SDWebImageSwiftUI */; };
 		DB3F9160282F7D680088CD3D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3F915F282F7D680088CD3D /* SettingsView.swift */; };
 		DB3F9163282F7F210088CD3D /* DeviceKit in Frameworks */ = {isa = PBXBuildFile; productRef = DB3F9162282F7F210088CD3D /* DeviceKit */; };
-		DB3F9165283058DE0088CD3D /* CategoriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3F9164283058DE0088CD3D /* CategoriesView.swift */; };
-		DBC1F2392833BE570093C52B /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBC1F2382833BE570093C52B /* LibraryView.swift */; };
+		DB3F9165283058DE0088CD3D /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3F9164283058DE0088CD3D /* LibraryView.swift */; };
+		DBC1F2392833BE570093C52B /* SignerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBC1F2382833BE570093C52B /* SignerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,8 +39,8 @@
 		DB3F9158282F27E70088CD3D /* ColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 		DB3F915A282F2F760088CD3D /* UIImageExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageExtension.swift; sourceTree = "<group>"; };
 		DB3F915F282F7D680088CD3D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		DB3F9164283058DE0088CD3D /* CategoriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoriesView.swift; sourceTree = "<group>"; };
-		DBC1F2382833BE570093C52B /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		DB3F9164283058DE0088CD3D /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		DBC1F2382833BE570093C52B /* SignerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,8 +82,8 @@
 				DB3F9146282F26520088CD3D /* ContentView.swift */,
 				DB03FA742830AACA00E4F61F /* OnboardView.swift */,
 				DB3F9155282F26FD0088CD3D /* HomeView.swift */,
-				DB3F9164283058DE0088CD3D /* CategoriesView.swift */,
-				DBC1F2382833BE570093C52B /* LibraryView.swift */,
+				DB3F9164283058DE0088CD3D /* LibraryView.swift */,
+				DBC1F2382833BE570093C52B /* SignerView.swift */,
 				DB3F915F282F7D680088CD3D /* SettingsView.swift */,
 				DB3F9148282F26540088CD3D /* Assets.xcassets */,
 				DB3F914A282F26540088CD3D /* Preview Content */,
@@ -190,14 +190,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DB3F9165283058DE0088CD3D /* CategoriesView.swift in Sources */,
+				DB3F9165283058DE0088CD3D /* LibraryView.swift in Sources */,
 				DB03FA752830AACA00E4F61F /* OnboardView.swift in Sources */,
 				DB3F9160282F7D680088CD3D /* SettingsView.swift in Sources */,
 				DB3F9154282F269D0088CD3D /* UITabBarControllerExtension.swift in Sources */,
 				DB3F9156282F26FD0088CD3D /* HomeView.swift in Sources */,
 				DB3F9147282F26520088CD3D /* ContentView.swift in Sources */,
 				DB3F9145282F26520088CD3D /* iNovaApp.swift in Sources */,
-				DBC1F2392833BE570093C52B /* LibraryView.swift in Sources */,
+				DBC1F2392833BE570093C52B /* SignerView.swift in Sources */,
 				DB03FA7A283160BB00E4F61F /* SheetExtension.swift in Sources */,
 				DB3F9159282F27E70088CD3D /* ColorExtension.swift in Sources */,
 				DB3F915B282F2F760088CD3D /* UIImageExtension.swift in Sources */,

@@ -20,13 +20,13 @@ struct ContentView: View {
                         .renderingMode(.template)
                 }
             
-            CategoriesView()
+            LibraryView()
                 .tabItem {
                     Image("categories")
                         .renderingMode(.template)
                 }
             
-            LibraryView()
+            SignerView()
                 .tabItem {
                     Image("signer")
                         .renderingMode(.template)
