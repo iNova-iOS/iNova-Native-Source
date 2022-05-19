@@ -185,7 +185,7 @@ struct AppVersion: Codable, Identifiable {
     var id = UUID()
     
     var nullVersion: String {
-        version ?? "Unknown"
+        return version ?? "Unknown"
     }
     
     let version: String?
@@ -231,12 +231,12 @@ struct AppView: View {
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 //Text(description)
-                Text("Version: \(String(appVersion?.nullVersion ?? "{{ version }}"))")
+                /*Text("Version: \(String(appVersion?.nullVersion ?? "{{ version }}"))")
                     .foregroundColor(Color.primary.opacity(0.6))
                     .font(.caption)
                     .fontWeight(.semibold)
                     .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)*/
             }
             
             Spacer()
@@ -253,19 +253,24 @@ struct AppView: View {
                         .foregroundColor(colorScheme == .dark ? Color.buttonColor : Color.buttonText)
                 }
             }
-        }.onAppear() {
+        }/*.onAppear() {
             if !alreadyRan {
                 guard let url = URL(string: "https://api.starfiles.co/file/fileinfo?file=" + id) else { return }
-                URLSession.shared.dataTask(with: url) { (data, _, _) in
+                URLSession.shared.dataTask(with: url) { (data, error, _) in
                     do {
                         appVersion = try JSONDecoder().decode(AppVersion.self, from: data!)
+                        // Possibly causes - Thread 3: Fatal error: Unexpectedly found nil while unwrapping an Optional value
+                        /* Error is - 2022-05-19 12:52:14.620953-0400 iNova[46167:1716976] Task <D023A47C-0E56-4664-AABC-3C8658D62D94>.<234> finished with error [-1001] Error Domain=NSURLErrorDomain Code=-1001 "The request timed out." UserInfo={_kCFStreamErrorCodeKey=-2102, NSUnderlyingError=0x600003aabae0 {Error Domain=kCFErrorDomainCFNetwork Code=-1001 "(null)" UserInfo={_kCFStreamErrorCodeKey=-2102, _kCFStreamErrorDomainKey=4}}, _NSURLErrorFailingURLSessionTaskErrorKey=LocalDataTask <D023A47C-0E56-4664-AABC-3C8658D62D94>.<234>, _NSURLErrorRelatedURLSessionTaskErrorKey=(
+                         "LocalDataTask <D023A47C-0E56-4664-AABC-3C8658D62D94>.<234>"
+                     ), NSLocalizedDescription=The request timed out., NSErrorFailingURLStringKey=https://api.starfiles.co/file/fileinfo?file=6mo6W0CZ3Gbq, NSErrorFailingURLKey=https://api.starfiles.co/file/fileinfo?file=6mo6W0CZ3Gbq, _kCFStreamErrorDomainKey=4}
+                         */
                         self.alreadyRan.toggle()
                     } catch {
                         //self.showError.toggle()
-                        print("error")
+                        print("Error: " + error.localizedDescription)
                     }
                 }.resume()
             }
-        }
+        }*/
     }
 }
