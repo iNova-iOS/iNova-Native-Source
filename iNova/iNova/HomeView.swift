@@ -65,9 +65,10 @@ struct HomeView: View {
                 VStack {
                     ForEach(popularApps.apps, id: \.id) { app in
                         HStack {
-                            WebImage(url: URL(string: app.image))
+                            WebImage(url: URL(string: app.image), options: [.lowPriority, .scaleDownLargeImages])
                                 .resizable()
                                 .placeholder(Image("placeholder"))
+                                .purgeable(true)
                                 .scaledToFill()
                                 .frame(width: 45, height: 45)
                                 .overlay(RoundedRectangle(cornerRadius: 10)

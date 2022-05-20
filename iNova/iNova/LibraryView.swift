@@ -15,8 +15,31 @@ import SDWebImageSwiftUI
 
 // Getting the apps
 struct AppsList: Codable, Identifiable {
-    let id: String
-    let name: String
+    let id, name, version: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, version
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let id = try container.decode(String.self, forKey: .id)
+        let name = try container.decode(String.self, forKey: .name)
+        //let version = try? container.decode(String.self, forKey: .version)
+        self.id = id
+        self.name = name
+        //self.version = version ?? "Unknown"
+        
+        if let double = try? container.decode(Double.self, forKey: .version) {
+            self.version = "\(double)"
+        } else if let string = try? container.decode(String.self, forKey: .version) {
+            self.version = string
+        } else if try container.decodeNil(forKey: .version) {
+            self.version = "Unknown"
+        } else {
+            self.version = "Unknown"
+        }
+    }
 }
 
 struct LibraryView: View {
@@ -96,7 +119,7 @@ struct LibraryView: View {
                             return appsNew.name.localizedCaseInsensitiveContains(searchText) || searchText == ""
                         }).sorted(by: { $0.name < $1.name}), id: \.id) { item in
                             
-                            AppView(id: item.id, name: item.name)//, description: "{{ version }}")
+                            AppView(id: item.id, name: item.name, description: item.version)
                             Divider()
                             .padding(.leading, 55)
                         }
@@ -104,7 +127,7 @@ struct LibraryView: View {
                 } else {
                     LazyVStack {
                         ForEach(appsNew, id: \.id) { item in
-                            AppView(id: item.id, name: item.name)//, description: "{{ version }}")
+                            AppView(id: item.id, name: item.name, description: item.version)
                             Divider()
                             .padding(.leading, 55)
                         }
@@ -180,46 +203,21 @@ struct AppSectionView: View {
     }
 }
 
-// Getting the app versions (WIP)
-struct AppVersion: Codable, Identifiable {
-    var id = UUID()
-    
-    var nullVersion: String {
-        return version ?? "Unknown"
-    }
-    
-    let version: String?
-    
-    enum CodingKeys : String, CodingKey {
-        case version
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let versionString = try? container.decode(String.self, forKey: .version)
-        let versionInt = try? container.decode(Int.self, forKey: .version)
-        self.version = versionString ?? (versionInt == 0 ? "Unknown" : "1.0")
-    }
-}
-
 struct AppView: View {
     
     @Environment(\.colorScheme) var colorScheme
     
     var id: String
     var name: String
-    //var description: String
-    
-    @State var appVersion: AppVersion?
-    
-    @State var alreadyRan = false
+    var description: String
     
     var body: some View {
         
         HStack {
-            WebImage(url: URL(string: "https://api.starfiles.co/file/icon/" + id))
+            WebImage(url: URL(string: "https://api.starfiles.co/file/icon/" + id), options: [.lowPriority, .scaleDownLargeImages])
                 .resizable()
                 .placeholder(Image("placeholder"))
+                .purgeable(true)
                 .scaledToFill()
                 .frame(width: 45, height: 45)
                 .overlay(RoundedRectangle(cornerRadius: 10)
@@ -230,13 +228,12 @@ struct AppView: View {
                     .fontWeight(.semibold)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                //Text(description)
-                /*Text("Version: \(String(appVersion?.nullVersion ?? "{{ version }}"))")
+                Text("Version: \(description)")
                     .foregroundColor(Color.primary.opacity(0.6))
                     .font(.caption)
                     .fontWeight(.semibold)
                     .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)*/
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             
             Spacer()
@@ -253,24 +250,6 @@ struct AppView: View {
                         .foregroundColor(colorScheme == .dark ? Color.buttonColor : Color.buttonText)
                 }
             }
-        }/*.onAppear() {
-            if !alreadyRan {
-                guard let url = URL(string: "https://api.starfiles.co/file/fileinfo?file=" + id) else { return }
-                URLSession.shared.dataTask(with: url) { (data, error, _) in
-                    do {
-                        appVersion = try JSONDecoder().decode(AppVersion.self, from: data!)
-                        // Possibly causes - Thread 3: Fatal error: Unexpectedly found nil while unwrapping an Optional value
-                        /* Error is - 2022-05-19 12:52:14.620953-0400 iNova[46167:1716976] Task <D023A47C-0E56-4664-AABC-3C8658D62D94>.<234> finished with error [-1001] Error Domain=NSURLErrorDomain Code=-1001 "The request timed out." UserInfo={_kCFStreamErrorCodeKey=-2102, NSUnderlyingError=0x600003aabae0 {Error Domain=kCFErrorDomainCFNetwork Code=-1001 "(null)" UserInfo={_kCFStreamErrorCodeKey=-2102, _kCFStreamErrorDomainKey=4}}, _NSURLErrorFailingURLSessionTaskErrorKey=LocalDataTask <D023A47C-0E56-4664-AABC-3C8658D62D94>.<234>, _NSURLErrorRelatedURLSessionTaskErrorKey=(
-                         "LocalDataTask <D023A47C-0E56-4664-AABC-3C8658D62D94>.<234>"
-                     ), NSLocalizedDescription=The request timed out., NSErrorFailingURLStringKey=https://api.starfiles.co/file/fileinfo?file=6mo6W0CZ3Gbq, NSErrorFailingURLKey=https://api.starfiles.co/file/fileinfo?file=6mo6W0CZ3Gbq, _kCFStreamErrorDomainKey=4}
-                         */
-                        self.alreadyRan.toggle()
-                    } catch {
-                        //self.showError.toggle()
-                        print("Error: " + error.localizedDescription)
-                    }
-                }.resume()
-            }
-        }*/
+        }
     }
 }
