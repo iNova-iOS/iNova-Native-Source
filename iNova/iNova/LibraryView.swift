@@ -48,6 +48,7 @@ struct LibraryView: View {
     
     @State private var searchText = ""
     @State var alreadyRan = false
+    @State var shouldNavigate = false
     
     @State var appsNew: [AppsList] = []
     
@@ -55,6 +56,9 @@ struct LibraryView: View {
         NavigationView {
             
             ScrollView {
+                
+                Spacer()
+                    .frame(height: 10)
                 
                 VStack {
                     HStack {
@@ -111,7 +115,7 @@ struct LibraryView: View {
                 .clipShape(
                     RoundedRectangle(cornerRadius: 15, style: .continuous)
                 )
-                .padding(.bottom, 17.5)
+                .padding([.leading, .trailing], 17.5).padding(.bottom, 17.5)
                 
                 if #available(iOS 15.0, *) {
                     LazyVStack {
@@ -121,20 +125,22 @@ struct LibraryView: View {
                             
                             AppView(id: item.id, name: item.name, description: item.version)
                             Divider()
-                            .padding(.leading, 55)
+                                .padding(.leading, 55)
                         }
                     }.searchable(text: $searchText)
+                        .padding([.leading, .trailing], 17.5)
                 } else {
                     LazyVStack {
                         ForEach(appsNew, id: \.id) { item in
                             AppView(id: item.id, name: item.name, description: item.version)
                             Divider()
-                            .padding(.leading, 55)
+                                .padding(.leading, 55)
                         }
                     }
+                    .padding([.leading, .trailing], 17.5)
                 }
                 
-            }.padding([.leading, .trailing], 17.5).padding(.top, 10)
+            }
             
                 .navigationTitle("App Library")
                 .navigationBarTitleDisplayMode(.large)
@@ -203,6 +209,7 @@ struct AppSectionView: View {
     }
 }
 
+// This is for apps themselves
 struct AppView: View {
     
     @Environment(\.colorScheme) var colorScheme
@@ -210,6 +217,8 @@ struct AppView: View {
     var id: String
     var name: String
     var description: String
+    
+    @State var showModal = false
     
     var body: some View {
         
@@ -238,8 +247,9 @@ struct AppView: View {
             
             Spacer()
             
+            /*
             Button(action: {
-                
+                self.showModal.toggle()
             }) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16)
@@ -249,7 +259,22 @@ struct AppView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(colorScheme == .dark ? Color.buttonColor : Color.buttonText)
                 }
+            }*/
+            
+            NavigationLink(destination: InspectView(id: id)) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(colorScheme == .dark ? Color.buttonText : Color.buttonColor)
+                        .frame(width: 65, height: 32)
+                    Text("VIEW")
+                        .fontWeight(.semibold)
+                        .foregroundColor(colorScheme == .dark ? Color.buttonColor : Color.buttonText)
+                }
             }
+        }
+        
+        .sheet(isPresented: $showModal) {
+            InspectView(id: id)
         }
     }
 }
