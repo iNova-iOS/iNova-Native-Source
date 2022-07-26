@@ -26,11 +26,13 @@ struct ContentView: View {
                         .renderingMode(.template)
                 }
             
+            /*
             SignerView()
                 .tabItem {
                     Image("signer")
                         .renderingMode(.template)
                 }
+             */
             
         }.onAppear() {
             if !firstRun() {

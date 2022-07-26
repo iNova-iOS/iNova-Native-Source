@@ -4,9 +4,13 @@
 //
 //  Created by Mason Scherbarth on 5/20/22.
 //
+//  Starfiles & EonHub VIP Endpoint
+//  https://premium.eonhubapp.com/1/backend/signvip.php?file= ID
+//
 
 import SwiftUI
 import SDWebImageSwiftUI
+import Alamofire
 
 struct InspectedApp: Codable, Identifiable {
     var id = UUID()
@@ -71,9 +75,10 @@ struct InspectView: View {
                 .overlay(
                     ZStack {
                         GeometryReader { geo in
-                            WebImage(url: URL(string: "https://api.starfiles.co/file/icon/" + id))
+                            WebImage(url: URL(string: "https://api.starfiles.co/file/icon/" + id), options: [.lowPriority, .scaleDownLargeImages])
                                 .resizable()
                                 .placeholder(Image("placeholder"))
+                                .purgeable(true)
                                 .scaledToFill()
                                 .frame(width: geo.size.width, height: geo.size.height)
                                 .clipped()
@@ -85,9 +90,10 @@ struct InspectView: View {
             
             VStack {
                 HStack {
-                    WebImage(url: URL(string: "https://api.starfiles.co/file/icon/" + id))
+                    WebImage(url: URL(string: "https://api.starfiles.co/file/icon/" + id), options: [.lowPriority, .scaleDownLargeImages])
                         .resizable()
                         .placeholder(Image("placeholder"))
+                        .purgeable(true)
                         .scaledToFill()
                         .frame(width: 75, height: 75)
                         .overlay(RoundedRectangle(cornerRadius: 15)
@@ -114,6 +120,26 @@ struct InspectView: View {
                     
                     Button(action: {
                         
+                        //https://multision.dev/inova/sign.php?file=\(id)
+                        AF.request("https://multision.dev/inova/sign.php?file=\(id)", method: .post).responseJSON
+                        { response in switch response.result {
+                        case .success(let JSON):
+                            print("Success with JSON: \(JSON)")
+                            
+                            let response = JSON as! NSDictionary
+                            
+                            //example if there is an id
+                            let appInstall = response.object(forKey: "url")!
+                            
+                            if let url = URL(string: "itms-services://?action=download-manifest&url=\(appInstall)") {
+                                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                            }
+                            
+                        case .failure(let error):
+                            print("Request failed with error: \(error)")
+                        }
+                        }
+                        
                     }) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 16)
@@ -124,6 +150,7 @@ struct InspectView: View {
                                 .foregroundColor(colorScheme == .dark ? Color.buttonColor : Color.buttonText)
                         }
                     }
+                    
                 }
                 
                 Divider()
@@ -158,7 +185,12 @@ struct InspectView: View {
                     InfoButtonView()
                 }
             }.padding([.leading, .trailing], 15)
-             
+            
+            //"https://premium.eonhubapp.com/1/backend/signvip.php?file=" + id
+            //"https://app.eonhubapp.com/backend/signfree.php?file=2fcf42b52d46"
+            /*WebView(request: URLRequest(url: URL(string: "https://premium.eonhubapp.com/1/backend/signvip.php?file=" + id)!))
+             .frame(width: 10, height: 10)*/
+            
         }.onAppear() {
             guard let url = URL(string: "https://api.starfiles.co/file/fileinfo?file=" + id) else { return }
             URLSession.shared.dataTask(with: url) { (data, _, _) in
@@ -170,9 +202,21 @@ struct InspectView: View {
             }.resume()
         }
         
-        .navigationBarTitle(appsNew?.name.replacingOccurrences(of: ".ipa", with: "") ?? "")
+        //.navigationBarTitle(appsNew?.name.replacingOccurrences(of: ".ipa", with: "") ?? "")
+        .navigationBarTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .navigationViewStyle(.stack)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                WebImage(url: URL(string: "https://api.starfiles.co/file/icon/" + id), options: [.lowPriority, .scaleDownLargeImages])
+                    .resizable()
+                    .placeholder(Image("placeholder"))
+                    .purgeable(true)
+                    .scaledToFill()
+                    .frame(width: 25, height: 25)
+                    .cornerRadius(5)
+            }
+        }
     }
 }
 
@@ -224,11 +268,11 @@ struct InfoButtonView: View {
 func abbreviateNumber(num: NSNumber) -> NSString {
     var ret: NSString = ""
     let abbrve: [String] = ["K", "M", "B"]
-
+    
     let floatNum = num.floatValue
-
+    
     if floatNum > 1000 {
-
+        
         for i in 0..<abbrve.count {
             let size = pow(10.0, (Float(i) + 1.0) * 3.0)
             if (size <= floatNum) {
@@ -240,19 +284,19 @@ func abbreviateNumber(num: NSNumber) -> NSString {
     } else {
         ret = NSString(format: "%d", Int(floatNum))
     }
-
+    
     return ret
 }
 
 func floatToString(val: Float) -> NSString {
     var ret = NSString(format: "%.1f", val)
     var c = ret.character(at: ret.length - 1)
-
+    
     while c == 48 {
         ret = ret.substring(to: ret.length - 1) as NSString
         c = ret.character(at: ret.length - 1)
-
-
+        
+        
         if (c == 46) {
             ret = ret.substring(to: ret.length - 1) as NSString
         }

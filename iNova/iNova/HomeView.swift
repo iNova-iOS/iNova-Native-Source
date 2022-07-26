@@ -8,20 +8,30 @@
 import SwiftUI
 import SDWebImageSwiftUI
 
-struct PopularAppsWrapper :Codable {
-    var apps : [PopularApps]
-}
-
-struct PopularApps: Codable, Identifiable {
-    var id = UUID()
+// Getting the apps
+struct TrendingApps: Codable, Identifiable {
+    let id, name, version: String
     
-    let image: String
-    let name: String
-    let category: String
-    let ipa: String
+    enum CodingKeys: String, CodingKey {
+        case id, name, version
+    }
     
-    enum CodingKeys : String, CodingKey {
-        case image, name, category, ipa
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let id = try container.decode(String.self, forKey: .id)
+        let name = try container.decode(String.self, forKey: .name)
+        self.id = id
+        self.name = name
+        
+        if let double = try? container.decode(Double.self, forKey: .version) {
+            self.version = "\(double)"
+        } else if let string = try? container.decode(String.self, forKey: .version) {
+            self.version = string
+        } else if try container.decodeNil(forKey: .version) {
+            self.version = "Unknown"
+        } else {
+            self.version = "Unknown"
+        }
     }
 }
 
@@ -32,7 +42,8 @@ struct HomeView: View {
     @State var showSettings = false
     
     @Environment(\.colorScheme) var colorScheme
-    @State var popularApps = PopularAppsWrapper(apps: [])
+    
+    @State var trendingApps: [TrendingApps] = []
     
     var body: some View {
         NavigationView {
@@ -54,7 +65,7 @@ struct HomeView: View {
                 // Featured Apps end
                 
                 // Popular Apps start
-                Text("Popular Apps")
+                Text("Trending Apps")
                     .font(.title2)
                     .fontWeight(.bold)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -63,9 +74,9 @@ struct HomeView: View {
                     .padding(.leading, 17.5)
                 
                 VStack {
-                    ForEach(popularApps.apps, id: \.id) { app in
+                    ForEach(trendingApps.sorted(by: { $0.name < $1.name}), id: \.id) { app in
                         HStack {
-                            WebImage(url: URL(string: app.image), options: [.lowPriority, .scaleDownLargeImages])
+                            WebImage(url: URL(string: "https://api.starfiles.co/file/icon/" + app.id), options: [.lowPriority, .scaleDownLargeImages])
                                 .resizable()
                                 .placeholder(Image("placeholder"))
                                 .purgeable(true)
@@ -79,7 +90,7 @@ struct HomeView: View {
                                     .fontWeight(.semibold)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .lineLimit(1)
-                                Text(app.category)
+                                Text("Version: " + app.version)
                                     .font(.caption)
                                     .fontWeight(.semibold)
                                     .foregroundColor(Color.primary.opacity(0.6))
@@ -125,11 +136,9 @@ struct HomeView: View {
         }.navigationViewStyle(.stack)
             .onAppear() {
                 if !fetched {
-                    guard let url = URL(string: "https://github.com/MasonD3V/evoflight/raw/master/featuredapps.json") else { return }
+                    guard let url = URL(string: "https://api.starfiles.co/2.0/files?public&extension=ipa&group=hash&collapse=true&limit=15&sort=trending") else { return }
                     URLSession.shared.dataTask(with: url) { (data, _, _) in
-                        let popular = try! JSONDecoder().decode(PopularAppsWrapper.self, from: data!)
-                        
-                        self.popularApps = popular
+                        trendingApps = try! JSONDecoder().decode([TrendingApps].self, from: data!)
                         
                         self.fetched.toggle()
                     }
